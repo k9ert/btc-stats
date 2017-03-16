@@ -1,0 +1,15 @@
+{
+  rpc: {
+    getBlockchainInfo: {
+      blocks: gauge
+      headers: gauge
+      difficulty: gauge
+      verificationprogress: gauge
+    }
+    getPeerInfo: {
+      pingtime: avggauge
+      bytessent: sumgauge
+      bytesrecv: sumgauge
+    }
+  }
+}
