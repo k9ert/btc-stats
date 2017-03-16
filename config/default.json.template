@@ -1,0 +1,11 @@
+{
+  "bitcoin": {
+      "node": "your.btc.node.com",
+      "user": "yourRpcUser",
+      "password": "andHisPassword"
+  },
+  "statsd": {
+    "host": "your.statsd.com",
+    "prefix": "btc."
+  }
+}
