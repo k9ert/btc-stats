@@ -17,40 +17,39 @@ client.getPeerInfo(function(err, bci) {
 
 });
 
-
+var methodReporterHash={};
 
 for (var methodname in config.get('rpc')){
-    var resultdesc = config.get('rpc')[methodname];
-    console.log("processing " + methodname );
-    console.log(resultdesc);
-    client[methodname](function(err, methodresult) {
-      console.log("the resultdesc is:");
-      console.log(resultdesc);
-      if (err) {
-        return console.error(err);
-      }
+    methodReporterHash[methodname]={};
+    methodReporterHash[methodname].resultDesc = config.get('rpc')[methodname];
+    methodReporterHash[methodname].report = function () {
+      var resultDesc=this.resultDesc;
+      client[methodname](function(err, methodresult) {
+        if (err) {
+          return console.error(err);
+        }
 
-      if (util.isArray(methodresult)) {
-        console.log("processing array");
-        console.log(resultdesc);
-        processArray(resultdesc,methodresult);
-      } else {
-        console.log("processing hash");
-        console.log(resultdesc);
-        processHash(resultdesc,methodresult);
-      }
+        if (util.isArray(methodresult)) {
+          console.log("processing array");
+          processArray(resultDesc,methodresult);
+        } else {
+          console.log("processing hash");
+          processHash(resultDesc,methodresult);
+        }
 
-    });
+      });
+    }
+    methodReporterHash[methodname].report();
 }
 
 
 
 function processHash(resultdescHash, methodresult) {
-  console.log( resultdescHash);
   for (var resultkey in resultdescHash) {
     if (resultdescHash[resultkey]=="gauge") {
-      console.log("process " + resultkey);
-      statsd.gauge(resultkey,methodresult[resultkey]);
+      var result = methodresult[resultkey]
+      console.log("report " + resultkey + ":"+result);
+      statsd.gauge(resultkey,result);
     }
   }
 }
@@ -58,14 +57,16 @@ function processHash(resultdescHash, methodresult) {
 function processArray(resultdescHash, methodresult) {
   // go through the resultdescHash
   for (var resultkey in resultdescHash) {
-    switch(resultdesc[resultkey]) {
+    switch(resultdescHash[resultkey]) {
       case "sumgauge" :
         var sum = util.sum(methodresult,resultkey);
-        statsd.gauge(resultkey,sum);
+        console.log("report " + resultkey + ".sum :"+sum);
+        statsd.gauge(resultkey + ".sum", sum);
         break
       case "avggauge" :
         var avg = util.avg(methodresult,resultkey);
-        statsd.gauge(resultkey,avg);
+        console.log("report " + resultkey + ".avg :"+avg);
+        statsd.gauge(resultkey + ".avg",avg);
     }
   }
 }
