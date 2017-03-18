@@ -21,10 +21,11 @@ var methodReporterHash={};
 
 for (var methodname in config.get('rpc')){
     methodReporterHash[methodname]={};
+    methodReporterHash[methodname].myMethodName=methodname
     methodReporterHash[methodname].resultDesc = config.get('rpc')[methodname];
     methodReporterHash[methodname].report = function () {
       var resultDesc=this.resultDesc;
-      client[methodname](function(err, methodresult) {
+      client[this.myMethodName](function(err, methodresult) {
         if (err) {
           return console.error(err);
         }
@@ -39,8 +40,18 @@ for (var methodname in config.get('rpc')){
 
       });
     }
-    methodReporterHash[methodname].report();
 }
+
+var cron = require('node-cron');
+
+cron.schedule('* * * * *', function(){
+  for (var reporter in methodReporterHash) {
+    console.log("reporting " + reporter);
+    methodReporterHash[reporter].report();
+  }
+});
+
+
 
 
 
